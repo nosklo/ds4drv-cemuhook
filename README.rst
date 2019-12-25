@@ -1,5 +1,5 @@
 ======
-ds4drv for Cemu hook- epigramx fork for correct yaw axis multiplier
+ds4drv for Cemu hook - epigramx fork for correct yaw axis multiplier
 ======
 
 Fork information
@@ -25,44 +25,6 @@ pip.
    # Install (or update to) the latest version of ds4drv-cemuhook from GitHub
    pip3 install -U https://github.com/epigramx/ds4drv-cemuhook/archive/master.zip
 
-ds4drv is a Sony DualShock 4 userspace driver for Linux.
-
-* Discussions: https://groups.google.com/forum/#!forum/ds4drv
-* GitHub: https://github.com/chrippa/ds4drv
-* PyPI: https://pypi.python.org/pypi/ds4drv
-
-Features
---------
-
-- Option to emulate the Xbox 360 controller for compatibility with Steam games
-- Setting the LED color
-- Reminding you about low battery by flashing the LED
-- Using the trackpad as a mouse
-- Custom mappings, map buttons and sticks to whatever mouse, key or joystick
-  action you want
-- Settings profiles that can be cycled through with a button binding
-
-
-
-How to use
-^^^^^^^^^^
-
-The driver supports all versions of Sony DualShock 4 controllers (I use
-DS4v2) connected via USB or Bluetooth.
-
-My version of ds4drv has 4 additional command line arguments (all are
-optional):
-
--  ``--udp`` -- starts UDP server. Without this flag ds4drv acts just
-   like the official version;
--  ``--udp-host`` -- tells UDP server to what interface it should bind
-   (default: 127.0.0.1);
--  ``--udp-port`` -- UDP port on which server will be listening
-   (default: 26760);
--  ``--udp-remap-buttons`` -- an option for those, who doesn’t like
-   Nintendo’s button layout. It just swaps A↔B and X↔Y buttons only for
-   UDP clients.
-
 Connecting controller and starting the driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -85,6 +47,43 @@ successfully:
 
    [info][controller 1] Connected to Bluetooth Controller (AA:BB:CC:DD:FF:EE hidraw4)
    [info][controller 1] Battery: Fully charged
+
+ds4drv is a Sony DualShock 4 userspace driver for Linux.
+
+* Discussions: https://groups.google.com/forum/#!forum/ds4drv
+* GitHub: https://github.com/chrippa/ds4drv
+* PyPI: https://pypi.python.org/pypi/ds4drv
+
+Features
+--------
+
+- Option to emulate the Xbox 360 controller for compatibility with Steam games
+- Setting the LED color
+- Reminding you about low battery by flashing the LED
+- Using the trackpad as a mouse
+- Custom mappings, map buttons and sticks to whatever mouse, key or joystick
+  action you want
+- Settings profiles that can be cycled through with a button binding
+
+How to use
+^^^^^^^^^^
+
+The driver supports all versions of Sony DualShock 4 controllers (I use
+DS4v2) connected via USB or Bluetooth.
+
+My version of ds4drv has 4 additional command line arguments (all are
+optional):
+
+-  ``--udp`` -- starts UDP server. Without this flag ds4drv acts just
+   like the official version;
+-  ``--udp-host`` -- tells UDP server to what interface it should bind
+   (default: 127.0.0.1);
+-  ``--udp-port`` -- UDP port on which server will be listening
+   (default: 26760);
+-  ``--udp-remap-buttons`` -- an option for those, who doesn’t like
+   Nintendo’s button layout. It just swaps A↔B and X↔Y buttons only for
+   UDP clients.
+
 
 Configuring cemuhook
 ^^^^^^^^^^^^^^^^^^^^
