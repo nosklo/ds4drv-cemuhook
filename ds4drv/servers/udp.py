@@ -186,7 +186,7 @@ class UDPServer:
             - report.orientation_yaw / 8192,
             - report.orientation_pitch / 8192,
             report.motion_y / 64,
-            - report.motion_x / 64 * 4,
+            - report.motion_x / 64,
             - report.motion_z / 64,
         ]
 
