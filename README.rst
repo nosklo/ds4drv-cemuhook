@@ -1,5 +1,5 @@
 ======
-ds4drv for Cemu hook - epigramx fork for correct yaw axis multiplier
+ds4drv for Cemu hook - epigramx' fork for correct yaw axis multiplier
 ======
 
 Fork information
@@ -54,6 +54,25 @@ ds4drv is a Sony DualShock 4 userspace driver for Linux.
 * GitHub: https://github.com/chrippa/ds4drv
 * PyPI: https://pypi.python.org/pypi/ds4drv
 
+Testing Cemuhook motion with PadTest
+^^^^^^^^^^^^^^^^^^^^
+PadTest: https://files.sshnuke.net/PadTest_1011.zip (it should run with any modern version of wine)
+
+Configuring cemuhook
+^^^^^^^^^^^^^^^^^^^^
+
+This part is very easy. Cemuhook connects to localhost:26760 by default,
+so you just need to choose the first controller (DSU1) in ``Options`` -
+``GamePad motion source`` and then check the
+``Also use for buttons/axes`` option in the same menu. It is also a good
+idea to disable your controller in Cemu’s ``Input settings``.
+
+|image0|
+
+.. |image0| image:: https://i.redd.it/r9ilsyi5w1p11.png
+
+.. _this: https://github.com/epigramx/ds4drv-cemuhook/blob/master/udev/50-ds4drv.rules
+
 Features
 --------
 
@@ -84,25 +103,6 @@ optional):
    Nintendo’s button layout. It just swaps A↔B and X↔Y buttons only for
    UDP clients.
 
-
-Configuring cemuhook
-^^^^^^^^^^^^^^^^^^^^
-
-This part is very easy. Cemuhook connects to localhost:26760 by default,
-so you just need to choose the first controller (DSU1) in ``Options`` -
-``GamePad motion source`` and then check the
-``Also use for buttons/axes`` option in the same menu. It is also a good
-idea to disable your controller in Cemu’s ``Input settings``.
-
-|image0|
-
-.. |image0| image:: https://i.redd.it/r9ilsyi5w1p11.png
-
-.. _this: https://github.com/epigramx/ds4drv-cemuhook/blob/master/udev/50-ds4drv.rules
-
-Installing
-----------
-
 Dependencies
 ^^^^^^^^^^^^
 
@@ -118,16 +118,7 @@ but you may want to use your distro's packages if available:
 - `python-evdev <http://pythonhosted.org/evdev/>`_ 0.3.0 or higher
 
 
-Stable release
-^^^^^^^^^^^^^^
-
-Installing the latest release is simple by using `pip <http://www.pip-installer.org/>`_:
-
-.. code-block:: bash
-
-    $ sudo pip install ds4drv
-
-Development version
+Upstream version
 ^^^^^^^^^^^^^^^^^^^
 
 If you want to try out latest development code check out the source from
@@ -293,12 +284,3 @@ These resources have been very helpful when creating ds4drv:
 - https://gist.github.com/johndrinkwater/7708901
 - https://github.com/ehd/node-ds4
 - http://forums.pcsx2.net/Thread-DS4-To-XInput-Wrapper
-
-
-----
-
-.. |dogecoin| image:: http://targetmoon.com/img/dogecoin.png
-  :alt: Dogecoin
-  :target: http://dogecoin.com/
-
-|dogecoin| DCbQgDa4aEbm9QNm4ix6zYV9vMirUDQLNj
