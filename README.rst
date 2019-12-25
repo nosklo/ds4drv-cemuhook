@@ -50,7 +50,7 @@ successfully:
 
 For Rumble Support in Cemu with wine
 ^^^^^^^^^^^^^^^^^^^^
-The current official wine repository supports XInput emulation with rumble for the DS4. Select XInput as a controller in Cemu and use the Rumble slider. You must use "Also use for buttons/axes" in Cemuhook's options in Cemu too since apparently ds4drv overrides XInput's button mapping.
+The current official wine repository supports XInput emulation with rumble for the DS4. Select XInput as a controller in Cemu and use the Rumble slider to test it. You must use "Also use for buttons/axes" in Cemuhook's options in Cemu too since ds4drv overrides XInput's buttons mapping.
 
 Testing Cemuhook motion with PadTest
 ^^^^^^^^^^^^^^^^^^^^
