@@ -1,5 +1,5 @@
 ======
-ds4drv - epigramx fork for correct yaw axis multiplier
+ds4drv for Cemu hook- epigramx fork for correct yaw axis multiplier
 ======
 
 ds4drv is a Sony DualShock 4 userspace driver for Linux.
