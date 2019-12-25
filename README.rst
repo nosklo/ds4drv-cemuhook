@@ -2,23 +2,6 @@
 ds4drv for Cemu hook- epigramx fork for correct yaw axis multiplier
 ======
 
-ds4drv is a Sony DualShock 4 userspace driver for Linux.
-
-* Discussions: https://groups.google.com/forum/#!forum/ds4drv
-* GitHub: https://github.com/chrippa/ds4drv
-* PyPI: https://pypi.python.org/pypi/ds4drv
-
-Features
---------
-
-- Option to emulate the Xbox 360 controller for compatibility with Steam games
-- Setting the LED color
-- Reminding you about low battery by flashing the LED
-- Using the trackpad as a mouse
-- Custom mappings, map buttons and sticks to whatever mouse, key or joystick
-  action you want
-- Settings profiles that can be cycled through with a button binding
-
 Fork information
 ----------------
 
@@ -41,6 +24,25 @@ pip.
 
    # Install (or update to) the latest version of ds4drv-cemuhook from GitHub
    pip3 install -U https://github.com/epigramx/ds4drv-cemuhook/archive/master.zip
+
+ds4drv is a Sony DualShock 4 userspace driver for Linux.
+
+* Discussions: https://groups.google.com/forum/#!forum/ds4drv
+* GitHub: https://github.com/chrippa/ds4drv
+* PyPI: https://pypi.python.org/pypi/ds4drv
+
+Features
+--------
+
+- Option to emulate the Xbox 360 controller for compatibility with Steam games
+- Setting the LED color
+- Reminding you about low battery by flashing the LED
+- Using the trackpad as a mouse
+- Custom mappings, map buttons and sticks to whatever mouse, key or joystick
+  action you want
+- Settings profiles that can be cycled through with a button binding
+
+
 
 How to use
 ^^^^^^^^^^
