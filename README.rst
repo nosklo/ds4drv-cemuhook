@@ -1,5 +1,5 @@
 ======
-ds4drv
+ds4drv - epigramx fork for correct yaw axis multiplier
 ======
 
 ds4drv is a Sony DualShock 4 userspace driver for Linux.
@@ -40,7 +40,7 @@ pip.
    sudo apt-get install python3-pip
 
    # Install (or update to) the latest version of ds4drv-cemuhook from GitHub
-   pip3 install -U https://github.com/TheDrHax/ds4drv-cemuhook/archive/master.zip
+   pip3 install -U https://github.com/epigramx/ds4drv-cemuhook/archive/master.zip
 
 How to use
 ^^^^^^^^^^
@@ -97,7 +97,7 @@ idea to disable your controller in Cemu’s ``Input settings``.
 
 .. |image0| image:: https://i.redd.it/r9ilsyi5w1p11.png
 
-.. _this: https://github.com/TheDrHax/ds4drv-cemuhook/blob/master/udev/50-ds4drv.rules
+.. _this: https://github.com/epigramx/ds4drv-cemuhook/blob/master/udev/50-ds4drv.rules
 
 Installing
 ----------
