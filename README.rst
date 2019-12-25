@@ -48,6 +48,10 @@ successfully:
    [info][controller 1] Connected to Bluetooth Controller (AA:BB:CC:DD:FF:EE hidraw4)
    [info][controller 1] Battery: Fully charged
 
+For Rumble Support in Cemu with wine
+^^^^^^^^^^^^^^^^^^^^
+The current official wine repository supports XInput emulation with rumble for the DS4. Select XInput as a controller in Cemu and use the Rumble slider. You must use "Also use for buttons/axes" in Cemuhook's options in Cemu too since apparently ds4drv overrides XInput's button mapping.
+
 Testing Cemuhook motion with PadTest
 ^^^^^^^^^^^^^^^^^^^^
 PadTest: https://files.sshnuke.net/PadTest_1011.zip (it should run with any modern version of wine)
@@ -59,10 +63,6 @@ This part is very easy. Cemuhook connects to localhost:26760 by default,
 so you just need to choose the first controller (DSU1) in ``Options`` -
 ``GamePad motion source`` and then check the
 ``Also use for buttons/axes`` option in the same menu. 
-
-For Rumble Support in Cemu with wine
-^^^^^^^^^^^^^^^^^^^^
-Current wine supports XInput emulation with rumble for the DS4. Make sure to select XInput as a controller in Cemu and use the Rumble slider. You must use "Also use for buttons/axes" in Cemuhook's options in Cemu too since apparently ds4drv overrides XInput's button mapping.
 
 |image0|
 
