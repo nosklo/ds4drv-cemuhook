@@ -185,9 +185,9 @@ class UDPServer:
             report.orientation_roll / 8192,
             - report.orientation_yaw / 8192,
             - report.orientation_pitch / 8192,
-            report.motion_y / 64,
-            - report.motion_x / 64,
-            - report.motion_z / 64,
+            report.motion_y / 16,
+            - report.motion_x / 16,
+            - report.motion_z / 16,
         ]
 
         for sensor in sensors:
