@@ -1,5 +1,5 @@
 ======
-ds4drv for Cemu hook - epigramx' fork for correct yaw axis multiplier
+ds4drv for Cemu hook - epigramx' fork for correct yaw axis multiplier, true MAC address and misc fixes
 ======
 
 Fork information
