@@ -53,6 +53,9 @@ class ReportActionInput(ReportAction):
     def setup(self, device):
         self.timer.start()
 
+        if self.server:
+            self.server.device(device)
+
     def disable(self):
         self.timer.stop()
 

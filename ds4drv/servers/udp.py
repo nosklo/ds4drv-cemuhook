@@ -7,6 +7,7 @@ import struct
 from binascii import crc32
 from time import time
 
+import re
 
 class Message(list):
     Types = dict(version=bytes([0x00, 0x00, 0x10, 0x00]),
@@ -50,7 +51,7 @@ class UDPServer:
             0x02,  # state (connected)
             0x03,  # model (generic)
             0x01,  # connection type (usb)
-            0x00, 0x00, 0x00, 0x00, 0x00, 0xff,  # MAC 00:00:00:00:00:FF
+            self.mac_int_bytes[0], self.mac_int_bytes[1], self.mac_int_bytes[2], self.mac_int_bytes[3], self.mac_int_bytes[4], self.mac_int_bytes[5],
             0xef,  # battery (charged)
             0x00,  # ?
         ])
@@ -93,6 +94,17 @@ class UDPServer:
         else:
             print('Unknown message type: ' + str(msg_type))
 
+    def mac_to_int(self, mac):
+        res = re.match('^((?:(?:[0-9a-f]{2}):){5}[0-9a-f]{2})$', mac.lower())
+        if res is None:
+            raise ValueError('invalid mac address')
+        return int(res.group(0).replace(':', ''), 16)
+
+    def device(self, device):
+        mac = device.device_addr
+        mac_int = self.mac_to_int(mac)
+        self.mac_int_bytes = mac_int.to_bytes(6, "big")
+
     def report(self, report):
         if not self.client:
             return None
@@ -102,7 +114,7 @@ class UDPServer:
             0x02,  # state (connected)
             0x02,  # model (generic)
             0x01,  # connection type (usb)
-            0x00, 0x00, 0x00, 0x00, 0x00, 0xff,  # MAC 00:00:00:00:00:FF
+            self.mac_int_bytes[0], self.mac_int_bytes[1], self.mac_int_bytes[2], self.mac_int_bytes[3], self.mac_int_bytes[4], self.mac_int_bytes[5],
             0xef,  # battery (charged)
             0x01  # is active (true)
         ]
