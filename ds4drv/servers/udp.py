@@ -179,8 +179,8 @@ class UDPServer:
             report.trackpad_touch1_y & 255,
         ])
 
-        data.extend(bytes(struct.pack('<d', time() * 10**6)))
-
+        data.extend(bytes(struct.pack('<Q', int(time()*10**6))))
+        
         sensors = [
             report.orientation_roll / 8192,
             - report.orientation_yaw / 8192,
