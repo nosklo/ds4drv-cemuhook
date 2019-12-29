@@ -86,16 +86,16 @@ class BluetoothBackend(Backend):
     def setup(self):
         """Check if the bluetooth controller is available."""
         try:
-            subprocess.check_output(["hcitool", "clock"],
+            subprocess.check_output(["bluetoothctl", "", "list"],
                                     stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError:
-            raise BackendError("'hcitool clock' returned error. Make sure "
+            raise BackendError("'bluetoothctl returned error. Make sure "
                                "your bluetooth device is powered up with "
                                "'hciconfig hciX up'.")
         except OSError:
-            raise BackendError("'hcitool' could not be found, make sure you "
+            raise BackendError("'bluetoothctl' could not be found, make sure you "
                                "have bluez-utils installed.")
-
+            
     def scan(self):
         """Scan for bluetooth devices."""
         try:
