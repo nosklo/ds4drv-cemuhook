@@ -38,6 +38,7 @@ class Message(list):
 
 
 class UDPServer:
+    mac_int_bytes = bytes(6)
     def __init__(self, host='', port=26760):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind((host, port))
