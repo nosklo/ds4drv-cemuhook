@@ -2,20 +2,15 @@
 ds4drv for Cemu hook - epigramx' fork for correct yaw axis multiplier, true MAC address and misc fixes
 ======
 
-Fork information
-----------------
+Implementation of a `cemuhook <https://cemuhook.sshnuke.net/padudpserver.html>`_ motion server.
 
-- Added basic implementation of `cemuhook's <https://cemuhook.sshnuke.net/padudpserver.html>`_ UDP protocol.
+This allows to use gyroscope, buttons and axes of DualShock 4 with `Cemu <http://cemu.info/>`_ over network or locally on any  Linux distribution.
 
-This allows to use gyroscope, buttons and axes of DualShock 4 with `Cemu <http://cemu.info/>`_ over network or locally on any supported Linux distribution.
-
-Implementation is quite dirty, not configurable and have only been tested with The Legend of Zelda: Breath of the Wild.
 
 How to install
 ^^^^^^^^^^^^^^
 
-The ds4drv driver is written in Python, so it can be installed using
-pip.
+The ds4drv driver can be installed using pip.
 
 ::
 
@@ -28,7 +23,7 @@ pip.
 Connecting controller and starting the driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The driver can be started by using this command:
+After the DS4 is paired (e.g. via GNOME settings) the driver can be started by using this command:
 
 ::
 
@@ -70,7 +65,7 @@ so you just need to choose the first controller (DSU1) in ``Options`` -
 
 .. _this: https://github.com/epigramx/ds4drv-cemuhook/blob/master/udev/50-ds4drv.rules
 
-ds4drv is a Sony DualShock 4 userspace driver for Linux.
+Upstream ds4drv is a Sony DualShock 4 userspace driver for Linux.
 
 * Discussions: https://groups.google.com/forum/#!forum/ds4drv
 * GitHub: https://github.com/chrippa/ds4drv
@@ -90,10 +85,10 @@ Features
 How to use
 ^^^^^^^^^^
 
-The driver supports all versions of Sony DualShock 4 controllers (I use
-DS4v2) connected via USB or Bluetooth.
+The driver supports all versions of Sony DualShock 4 controllers connected
+via USB or Bluetooth.
 
-My version of ds4drv has 4 additional command line arguments (all are
+ds4drv-cemuhook has 4 additional command line arguments (all are
 optional):
 
 -  ``--udp`` -- starts UDP server. Without this flag ds4drv acts just
