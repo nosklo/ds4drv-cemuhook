@@ -86,7 +86,7 @@ class BluetoothBackend(Backend):
     def setup(self):
         """Check if the bluetooth controller is available."""
         try:
-            subprocess.check_output(["bluetoothctl", "", "list"],
+            subprocess.check_output(["bluetoothctl", "list"],
                                     stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError:
             raise BackendError("'bluetoothctl returned error. Make sure "
