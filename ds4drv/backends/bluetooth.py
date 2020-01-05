@@ -83,11 +83,17 @@ class BluetoothBackend(Backend):
     __name__ = "bluetooth"
 
     def setup(self):
-        pass
+        try:
+            bluetooth.read_local_bdaddr()
+        except bluetooth.BluetoothError:
+            raise BackendError("No Bluetooth Receiver available")
 
     def scan(self):
         """Scan for bluetooth devices."""
-        return bluetooth.discover_devices(duration=10, flush_cache=True, lookup_names=True)
+        try:
+            return bluetooth.discover_devices(duration=10, flush_cache=True, lookup_names=True)
+        except OSError:
+            raise BackendError("No Bluetooth Receiver available")
 
     def find_device(self):
         """Scan for bluetooth devices and return a DS4 device if found."""
