@@ -83,6 +83,7 @@ class BluetoothBackend(Backend):
     __name__ = "bluetooth"
 
     def setup(self):
+        """Check if Bluetooth Adapter is available"""
         try:
             bluetooth.read_local_bdaddr()
         except bluetooth.BluetoothError:
