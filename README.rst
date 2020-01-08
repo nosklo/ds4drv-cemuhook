@@ -2,12 +2,12 @@
 ds4drv for Cemu hook - epigramx' fork for correct yaw axis multiplier, true MAC address and misc fixes
 ====
 
-This is DS4 driver that includes a `cemuhook <https://cemuhook.sshnuke.net/padudpserver.html>`_ motion server. It allows to use motion data("gyro"), and other input of DualShock 4 with `Cemu <http://cemu.info/>`_ over network or locally on Linux. Rumble in Cemu is possible because of Wine XInput emulation.
+This is a DS4 driver that includes a `cemuhook <https://cemuhook.sshnuke.net/padudpserver.html>`_ motion server. It allows to use motion data("gyro"), and other input of DualShock 4 with `Cemu <http://cemu.info/>`_ over network or locally on Linux. Rumble in Cemu is possible because of Wine XInput emulation.
 
 How to install it:
 ^^^^
 
-Step 1: Install pip and BlueZ dev files on Debian/Ubuntu/etc.:
+Step 1: Install pip and BlueZ dev files on Debian/Ubuntu/etc. or do the equivalent on other distros:
 ::
   sudo apt-get install python3-pip libbluetooth-dev
 
