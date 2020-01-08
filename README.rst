@@ -1,94 +1,64 @@
-======
+====
 ds4drv for Cemu hook - epigramx' fork for correct yaw axis multiplier, true MAC address and misc fixes
-======
+====
 
-Implementation of a `cemuhook <https://cemuhook.sshnuke.net/padudpserver.html>`_ motion server.
+This is DS4 driver that includes a `cemuhook <https://cemuhook.sshnuke.net/padudpserver.html>`_ motion server. It allows to use motion data("gyro"), and other input of DualShock 4 with `Cemu <http://cemu.info/>`_ over network or locally on Linux. Rumble in Cemu is possible because of Wine XInput emulation.
 
-This allows to use gyroscope, buttons and axes of DualShock 4 with `Cemu <http://cemu.info/>`_ over network or locally on any  Linux distribution.
+How to install it:
+^^^^
 
-
-How to install
-^^^^^^^^^^^^^^
-
-The ds4drv driver can be installed using pip and the BlueZ dev files.
-
+Step 1: Install pip and BlueZ dev files on Debian/Ubuntu/etc.:
 ::
+  sudo apt-get install python3-pip libbluetooth-dev
 
-   # Install pip and BlueZ dev files on Debian/Ubuntu/etc.
-   sudo apt-get install python3-pip libbluetooth-dev
-
-   # Install (or update to) the latest version of ds4drv-cemuhook from GitHub
-   pip3 install -U https://github.com/epigramx/ds4drv-cemuhook/archive/master.zip
-
-Connecting controller and starting the driver
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-After the DS4 is paired (e.g. via GNOME settings) the driver can be started by using this command:
-
+Step 2: Install (or update to) the latest version of ds4drv-cemuhook from GitHub:
 ::
+  pip3 install -U https://github.com/epigramx/ds4drv-cemuhook/archive/master.zip
 
-   python3 -m ds4drv --hidraw --udp --trackpad-mouse
-
-"--trackpad-mouse" emulates mouse movement with the DS4 touchpad and can be omitted if needed.
-
-If you see a ``Permission denied`` error, you may need to copy `this`_
-file to ``/etc/udev/rules.d/`` and then execute this command:
-``sudo udevadm control --reload``. This udev rule allows to access the
-controller from user space without root privileges. After that reconnect
-your controller and try again.
-
-You should see something like this if controller has been connected
-successfully:
-
+Step 3: Launch ds4drv-cemuhook:
 ::
+  python3 -m ds4drv --hidraw --udp --trackpad-mouse
 
-   [info][controller 1] Connected to Bluetooth Controller (AA:BB:CC:DD:FF:EE hidraw4)
-   [info][controller 1] Battery: Fully charged
+You should see something like this if controller has been connected successfully:
+::
+  [info][controller 1] Connected to Bluetooth Controller (AA:BB:CC:DD:FF:EE hidraw4)
+  [info][controller 1] Battery: Fully charged
+
+Notes
+^^^^
+- The DS4 should be bluetooth-paired (e.g. via the GNOME UI) or connected to the USB. 
+
+- "--trackpad-mouse" emulates mouse movement with the DS4 touchpad and can be omitted if needed.
+
+- If you see a ``Permission denied`` error, you may need to copy `this`_ file to ``/etc/udev/rules.d/`` and then execute this command: ``sudo udevadm control --reload``. This udev rule allows to access the controller from user space without root privileges. After that reconnect your controller and try again.
+
+.. _this: https://github.com/epigramx/ds4drv-cemuhook/blob/master/udev/50-ds4drv.rules
 
 For Rumble Support in Cemu with wine
-^^^^^^^^^^^^^^^^^^^^
+^^^^
 The current official wine repository supports XInput emulation with rumble for the DS4. Select XInput as a controller in Cemu and use the Rumble slider to test it. You must use "Also use for buttons/axes" in Cemuhook's options in Cemu too since ds4drv overrides XInput's buttons mapping.
 
 Testing Cemuhook motion with PadTest
-^^^^^^^^^^^^^^^^^^^^
-PadTest: https://files.sshnuke.net/PadTest_1011.zip (it should run with any modern version of wine)
+^^^^
+- Get PadTest: https://files.sshnuke.net/PadTest_1011.zip 
+- Run it with any modern version of Wine
+- Test that the motion maps correctly
 
-Configuring cemuhook
-^^^^^^^^^^^^^^^^^^^^
+Configuring Cemu itself
+^^^^
 
-This part is very easy. Cemuhook connects to localhost:26760 by default,
-so you just need to choose the first controller (DSU1) in ``Options`` -
-``GamePad motion source`` and then check the
-``Also use for buttons/axes`` option in the same menu. 
+- Have Cemuhook installed. To have Cemu use it, make sure winecfg prioritizes its dbghelp.dll.
+
+- Cemu connects to localhost:26760 by default, so you just need to choose the first controller (DSU1) in ``Options`` -``GamePad motion source`` 
+
+- Make sure to check the ``Also use for buttons/axes`` option in the same menu because ds4drv overrides Wine's XInput emulation buttons
 
 |image0|
 
 .. |image0| image:: https://i.redd.it/r9ilsyi5w1p11.png
 
-.. _this: https://github.com/epigramx/ds4drv-cemuhook/blob/master/udev/50-ds4drv.rules
-
-Upstream ds4drv is a Sony DualShock 4 userspace driver for Linux.
-
-* Discussions: https://groups.google.com/forum/#!forum/ds4drv
-* GitHub: https://github.com/chrippa/ds4drv
-* PyPI: https://pypi.python.org/pypi/ds4drv
-
-Features
---------
-
-- Option to emulate the Xbox 360 controller for compatibility with Steam games
-- Setting the LED color
-- Reminding you about low battery by flashing the LED
-- Using the trackpad as a mouse
-- Custom mappings, map buttons and sticks to whatever mouse, key or joystick
-  action you want
-- Settings profiles that can be cycled through with a button binding
-
-How to use
-^^^^^^^^^^
-
-The driver supports all versions of Sony DualShock 4 controllers connected
-via USB or Bluetooth.
+Additional options
+^^^^
 
 ds4drv-cemuhook has 4 additional command line arguments (all are
 optional):
@@ -103,8 +73,28 @@ optional):
    Nintendo’s button layout. It just swaps A↔B and X↔Y buttons only for
    UDP clients.
 
+Upstream ds4drv information
+^^^^
+
+ds4drv is a Sony DualShock 4 userspace driver for Linux.
+
+* Discussions: https://groups.google.com/forum/#!forum/ds4drv
+* GitHub: https://github.com/chrippa/ds4drv
+* PyPI: https://pypi.python.org/pypi/ds4drv
+
+Features
+----
+
+- Option to emulate the Xbox 360 controller for compatibility with Steam games
+- Setting the LED color
+- Reminding you about low battery by flashing the LED
+- Using the trackpad as a mouse
+- Custom mappings, map buttons and sticks to whatever mouse, key or joystick
+  action you want
+- Settings profiles that can be cycled through with a button binding
+
 Dependencies
-^^^^^^^^^^^^
+----
 
 - `Python <http://python.org/>`_ 2.7 or 3.3+ (for Debian/Ubuntu you need to
   install the *python2.7-dev* or *python3.3-dev* package)
@@ -117,10 +107,6 @@ but you may want to use your distro's packages if available:
 - `pyudev <http://pyudev.readthedocs.org/>`_ 0.16 or higher
 - `python-evdev <http://pythonhosted.org/evdev/>`_ 0.3.0 or higher
 
-
-Upstream version
-^^^^^^^^^^^^^^^^^^^
-
 If you want to try out latest development code check out the source from
 Github and install it with:
 
@@ -130,7 +116,6 @@ Github and install it with:
     $ cd ds4drv
     $ sudo python setup.py install
 
-
 Using
 -----
 
@@ -138,7 +123,7 @@ ds4drv has two different modes to find DS4 devices, decide which one to use
 depending on your use case.
 
 Raw bluetooth mode
-^^^^^^^^^^^^^^^^^^
+----
 
 Supported protocols: **Bluetooth**
 
@@ -153,9 +138,8 @@ This is the default mode when running without any options:
 
    $ ds4drv
 
-
 Hidraw mode
-^^^^^^^^^^^
+----
 
 Supported protocols: **Bluetooth** and **USB**
 
@@ -177,7 +161,7 @@ a micro USB cable.
 
 
 Permissions
-^^^^^^^^^^^
+----
 
 If you want to use ds4drv as a normal user, you need to make sure ds4drv has
 permissions to use certain features on your system.
@@ -200,7 +184,7 @@ Configuring
 -----------
 
 Configuration file
-^^^^^^^^^^^^^^^^^^
+""""
 
 The preferred way of configuring ds4drv is via a config file.
 Take a look at `ds4drv.conf <ds4drv.conf>`_ for example usage.
@@ -214,7 +198,7 @@ ds4drv will look for the config file in the following paths:
 
 
 Command line options
-^^^^^^^^^^^^^^^^^^^^
+""""
 You can also configure using command line options, this will set the LED
 to a bright red:
 
@@ -226,7 +210,7 @@ See ``ds4drv --help`` for a list of all the options.
 
 
 Multiple controllers
-^^^^^^^^^^^^^^^^^^^^
+""""
 
 ds4drv does in theory support multiple controllers (I only have one
 controller myself, so this is untested). You can give each controller
@@ -255,7 +239,7 @@ Troubleshooting
 Check here for frequently encountered issues.
 
 Failed to create input device: "/dev/uinput" cannot be opened for writing
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+""""
 
 This could be because the uinput kernel module is not running on your
 computer. Doing ``lsmod | grep uinput`` should show if the module is loaded.
