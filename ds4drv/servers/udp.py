@@ -1,3 +1,4 @@
+from __future__ import division
 from builtins import bytes
 
 from threading import Thread
@@ -38,12 +39,14 @@ class Message(list):
 
 
 class UDPServer:
+
     mac_int_bytes = bytes(6)
+
     def __init__(self, host='', port=26760):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind((host, port))
         self.counter = 0
-        self.client = None
+        self.clients = dict()
         self.remap = False
 
     def _res_ports(self, index):
@@ -77,8 +80,19 @@ class UDPServer:
         # reg_mac = message[26:32]
 
         if flags == 0 and reg_id == 0:  # TODO: Check MAC
-            self.client = address
-            self.last_request = time()
+            if address not in self.clients:
+                print('[udp] Client connected: {0[0]}:{0[1]}'.format(address))
+
+            self.clients[address] = time()
+
+    def _res_data(self, message):
+        now = time()
+        for address, timestamp in self.clients.copy().items():
+            if now - timestamp < 2:
+                self.sock.sendto(message, address)
+            else:
+                print('[udp] Client disconnected: {0[0]}:{0[1]}'.format(address))
+                del self.clients[address]
 
     def _handle_request(self, request):
         message, address = request
@@ -93,7 +107,7 @@ class UDPServer:
         elif msg_type == Message.Types['data']:
             self._req_data(message, address)
         else:
-            print('Unknown message type: ' + str(msg_type))
+            print('[udp] Unknown message type: ' + str(msg_type))
 
     def mac_to_int(self, mac):
         res = re.match('^((?:(?:[0-9a-f]{2}):){5}[0-9a-f]{2})$', mac.lower())
@@ -107,7 +121,7 @@ class UDPServer:
         self.mac_int_bytes = mac_int.to_bytes(6, "big")
 
     def report(self, report):
-        if not self.client:
+        if len(self.clients) == 0:
             return None
 
         data = [
@@ -151,31 +165,31 @@ class UDPServer:
 
         data.extend([
             buttons1, buttons2,
-            0xFF if report.button_ps else 0x00,
-            0xFF if report.button_trackpad else 0x00,
+            report.button_ps * 0xFF,
+            report.button_trackpad * 0xFF,
 
             report.left_analog_x,
             255 - report.left_analog_y,
             report.right_analog_x,
             255 - report.right_analog_y,
 
-            0xFF if report.dpad_left else 0x00,
-            0xFF if report.dpad_down else 0x00,
-            0xFF if report.dpad_right else 0x00,
-            0xFF if report.dpad_up else 0x00,
+            report.dpad_left * 0xFF,
+            report.dpad_down * 0xFF,
+            report.dpad_right * 0xFF,
+            report.dpad_up * 0xFF,
 
-            0xFF if report.button_square else 0x00,
-            0xFF if report.button_cross else 0x00,
-            0xFF if report.button_circle else 0x00,
-            0xFF if report.button_triangle else 0x00,
+            report.button_square * 0xFF,
+            report.button_cross * 0xFF,
+            report.button_circle * 0xFF,
+            report.button_triangle * 0xFF,
 
-            0xFF if report.button_r1 else 0x00,
-            0xFF if report.button_l1 else 0x00,
+            report.button_r1 * 0xFF,
+            report.button_l1 * 0xFF,
 
             report.r2_analog,
             report.l2_analog,
 
-            0xFF if report.trackpad_touch0_active else 0xFF,
+            report.trackpad_touch0_active * 0xFF,
             report.trackpad_touch0_id,
 
             report.trackpad_touch0_x >> 8,
@@ -183,7 +197,7 @@ class UDPServer:
             report.trackpad_touch0_y >> 8,
             report.trackpad_touch0_y & 255,
 
-            0xFF if report.trackpad_touch1_active else 0xFF,
+            report.trackpad_touch1_active * 0xFF,
             report.trackpad_touch1_id,
 
             report.trackpad_touch1_x >> 8,
@@ -206,7 +220,7 @@ class UDPServer:
         for sensor in sensors:
             data.extend(bytes(struct.pack('<f', float(sensor))))
 
-        self.sock.sendto(bytes(Message('data', data)), self.client)
+        self._res_data(bytes(Message('data', data)))
 
     def _worker(self):
         while True:
