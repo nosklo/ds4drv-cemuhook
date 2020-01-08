@@ -1,17 +1,16 @@
 import socket
-import subprocess
+import bluetooth
 
 from ..backend import Backend
-from ..exceptions import BackendError, DeviceError
 from ..device import DS4Device
+from ..exceptions import BackendError, DeviceError
 from ..utils import zero_copy_slice
-
 
 L2CAP_PSM_HIDP_CTRL = 0x11
 L2CAP_PSM_HIDP_INTR = 0x13
 
 HIDP_TRANS_SET_REPORT = 0x50
-HIDP_DATA_RTYPE_OUTPUT  = 0x02
+HIDP_DATA_RTYPE_OUTPUT = 0x02
 
 REPORT_ID = 0x11
 REPORT_SIZE = 79
@@ -84,34 +83,18 @@ class BluetoothBackend(Backend):
     __name__ = "bluetooth"
 
     def setup(self):
-        """Check if the bluetooth controller is available."""
+        """Check if Bluetooth Adapter is available"""
         try:
-            subprocess.check_output(["bluetoothctl", "list"],
-                                    stderr=subprocess.STDOUT)
-        except subprocess.CalledProcessError:
-            raise BackendError("'bluetoothctl returned error. Make sure "
-                               "your bluetooth device is powered up with "
-                               "'hciconfig hciX up'.")
-        except OSError:
-            raise BackendError("'bluetoothctl' could not be found, make sure you "
-                               "have bluez-utils installed.")
-            
+            bluetooth.read_local_bdaddr()
+        except bluetooth.BluetoothError:
+            raise BackendError("No Bluetooth Receiver available")
+
     def scan(self):
         """Scan for bluetooth devices."""
         try:
-            res = subprocess.check_output(["hcitool", "scan", "--flush"],
-                                          stderr=subprocess.STDOUT)
-        except subprocess.CalledProcessError:
-             raise BackendError("'hcitool scan' returned error. Make sure "
-                                "your bluetooth device is powered up with "
-                                "'hciconfig hciX up'.")
-
-        devices = []
-        res = res.splitlines()[1:]
-        for _, bdaddr, name in map(lambda l: l.split(b"\t"), res):
-            devices.append((bdaddr.decode("utf8"), name.decode("utf8")))
-
-        return devices
+            return bluetooth.discover_devices(duration=10, flush_cache=True, lookup_names=True)
+        except OSError:
+            raise BackendError("No Bluetooth Receiver available")
 
     def find_device(self):
         """Scan for bluetooth devices and return a DS4 device if found."""
@@ -142,4 +125,3 @@ class BluetoothBackend(Backend):
             except DeviceError as err:
                 self.logger.error("Unable to connect to detected device: {0}",
                                   err)
-
