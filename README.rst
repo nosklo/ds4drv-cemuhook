@@ -10,12 +10,12 @@ This allows to use gyroscope, buttons and axes of DualShock 4 with `Cemu <http:/
 How to install
 ^^^^^^^^^^^^^^
 
-The ds4drv driver can be installed using pip.
+The ds4drv driver can be installed using pip and the BlueZ dev files.
 
 ::
 
-   # Install pip on Debian/Ubuntu/etc.
-   sudo apt-get install python3-pip
+   # Install pip and BlueZ dev files on Debian/Ubuntu/etc.
+   sudo apt-get install python3-pip libbluetooth-dev
 
    # Install (or update to) the latest version of ds4drv-cemuhook from GitHub
    pip3 install -U https://github.com/epigramx/ds4drv-cemuhook/archive/master.zip
