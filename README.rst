@@ -27,7 +27,9 @@ After the DS4 is paired (e.g. via GNOME settings) the driver can be started by u
 
 ::
 
-   python3 -m ds4drv --hidraw --udp
+   python3 -m ds4drv --hidraw --udp --trackpad-mouse
+
+"--trackpad-mouse" emulates mouse movement with the DS4 touchpad and can be omitted if needed.
 
 If you see a ``Permission denied`` error, you may need to copy `this`_
 file to ``/etc/udev/rules.d/`` and then execute this command:
