@@ -1,5 +1,5 @@
 ====
-ds4drv for Cemu hook - epigramx' fork for correct yaw axis multiplier, true MAC address and misc fixes
+ds4drv for Cemu hook - epigramx' fork for correct yaw axis multiplier, true MAC address and misc improvements
 ====
 
 This is a DS4 driver that includes a `cemuhook <https://cemuhook.sshnuke.net/padudpserver.html>`_ motion server. It allows to use motion data("gyro"), and other input of DualShock 4 with `Cemu <http://cemu.info/>`_ over network or locally on Linux. Rumble in Cemu is possible because of Wine XInput emulation.
@@ -30,7 +30,7 @@ Notes
 
 - "--trackpad-mouse" emulates mouse movement with the DS4 touchpad and can be omitted if needed.
 
-- If you see a ``Permission denied`` error, you may need to copy `this`_ file to ``/etc/udev/rules.d/`` and then execute this command: ``sudo udevadm control --reload``. This udev rule allows to access the controller from user space without root privileges. After that reconnect your controller and try again.
+- If you see ``"/dev/uinput" cannot be opened`` you may need to load the ``uinput`` module (e.g. by using /etc/modules-load.d/modules.conf or manually with modprobe) and if you see a ``Permission denied`` error, you may need to copy `this`_ file to ``/etc/udev/rules.d/`` and then execute this command: ``sudo udevadm control --reload``. This udev rule allows to access the controller from user space without root privileges. After that reconnect your controller and try again.
 
 .. _this: https://github.com/epigramx/ds4drv-cemuhook/blob/master/udev/50-ds4drv.rules
 
