@@ -7,32 +7,31 @@ This is a DS4 driver that includes a `cemuhook <https://cemuhook.sshnuke.net/pad
 How to install it:
 ^^^^
 
-Step 1: Install pip and BlueZ dev files on Debian/Ubuntu/etc. or do the equivalent on other distros:
+Step 1: Install pip and python3 dev files and BlueZ dev files on Debian/Ubuntu/etc. or do the equivalent on other distros:
 ::
-  sudo apt-get install python3-pip libbluetooth-dev
+  sudo apt-get install python3-pip python3-dev libbluetooth-dev
 
 Step 2: Install (or update to) the latest version of ds4drv-cemuhook from GitHub:
 ::
   pip3 install -U https://github.com/epigramx/ds4drv-cemuhook/archive/master.zip
 
-Step 3: Launch ds4drv-cemuhook:
+Step 3: Launch ds4drv-cemuhook as superuser after making sure uinput is loaded:
 ::
-  python3 -m ds4drv --hidraw --udp --trackpad-mouse
+  sudo modprobe uinput
+  sudo python3 -m ds4drv --hidraw --udp --trackpad-mouse
 
 You should see something like this if controller has been connected successfully:
 ::
   [info][controller 1] Connected to Bluetooth Controller (AA:BB:CC:DD:FF:EE hidraw4)
   [info][controller 1] Battery: Fully charged
 
-Notes
+Requirements and notes and potential errors
 ^^^^
 - The DS4 should be bluetooth-paired (e.g. via the GNOME UI) or connected to the USB. 
-
 - "--trackpad-mouse" emulates mouse movement with the DS4 touchpad and can be omitted if needed.
-
-- If you see ``"/dev/uinput" cannot be opened`` you may need to load the ``uinput`` module (e.g. by using /etc/modules-load.d/modules.conf or manually with modprobe) and if you see a ``Permission denied`` error, you may need to copy `this`_ file to ``/etc/udev/rules.d/`` and then execute this command: ``sudo udevadm control --reload``. This udev rule allows to access the controller from user space without root privileges. After that reconnect your controller and try again.
-
+- If you see ``"/dev/uinput" does not exist`` you need to load the ``uinput`` module (e.g. every boot with /etc/modules-load.d/modules.conf or manually with modprobe). If you launch it as a normal user you may see a ``Permission denied`` error, in which case you can copy `this`_ file to ``/etc/udev/rules.d/`` and then execute the command ``sudo udevadm control --reload``. This udev rule allows to access the raw HID and uinput from user space without root privileges. After that reconnect your controller and try again. 
 .. _this: https://github.com/epigramx/ds4drv-cemuhook/blob/master/udev/50-ds4drv.rules
+
 
 For Rumble Support in Cemu with wine
 ^^^^
