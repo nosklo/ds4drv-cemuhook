@@ -1,17 +1,22 @@
 from __future__ import division
+
+import collections
 from builtins import bytes
+from typing import Any, Dict, Tuple
 
 import attr
 
 from threading import Thread
-import sys
+
 import socket
 import struct
-from binascii import crc32
+import binascii
 from time import time
 import enum
 
 import re
+
+PROTOCOL_VERSION = 1001
 
 
 class MessageType(enum.Enum):
@@ -20,11 +25,10 @@ class MessageType(enum.Enum):
     data = b'\x02\x00\x10\x00'
 
 
-HEADER = bytes(
-    [
-        0x44, 0x53, 0x55, 0x53,  # DSUS,
-        0xE9, 0x03,  # protocol version (1001),
-    ])
+SERVER_MAGIC = b'DSUS'
+CLIENT_MAGIC = b'DSUC'
+
+_HEADER = SERVER_MAGIC + struct.pack('<H', PROTOCOL_VERSION)
 
 
 @attr.s(auto_attribs=True)
@@ -33,9 +37,9 @@ class Message:
     data: bytes
 
     def serialize(self) -> bytes:
-        header = bytearray(HEADER)
+        header = bytearray(_HEADER)
 
-        # add data length:
+        # add data length (message type is part of it):
         header += struct.pack('<H', len(self.data) + 4)
 
         # server ID:
@@ -48,7 +52,7 @@ class Message:
         payload += self.data
 
         # calculate the crc32
-        crc = struct.pack('<I', crc32(header + b'\x00' * 4 + payload) & 0xffffffff)
+        crc = struct.pack('<I', binascii.crc32(header + b'\x00' * 4 + payload) & 0xffffffff)
 
         # add it
         payload = header + crc + payload
@@ -56,57 +60,77 @@ class Message:
         return payload
 
 
+TAddress = Tuple[str, int]
+
+
+@attr.s(auto_attribs=True)
+class ControllerData:
+    clients: Dict[TAddress, float] = attr.ib(init=False, factory=dict)
+    mac: bytes = attr.ib(init=False, default=bytes(6))
+
+
+@attr.s(auto_attribs=True)
 class UDPServer:
-    mac_int_bytes = bytes(6)
+    host: str = ''
+    port: int = 26760
+    controllers: Dict[int, ControllerData] = attr.ib(init=False,
+                                                     factory=lambda: collections.defaultdict(ControllerData))
+    counter: int = 0
 
-    def __init__(self, host='', port=26760):
+    def __attrs_post_init__(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock.bind((host, port))
-        self.counter = 0
-        self.clients = dict()
-        self.remap = False
+        self.sock.bind((self.host, self.port))
+    #     self.counter = 0
+    #     self.clients = dict()
+    #     self.remap = False
 
-    def _res_ports(self, index):
+    def _res_ports(self, pad_id: int) -> Message:
         return Message(MessageType.ports, bytes([
-            index,  # pad id
+            pad_id,  # pad id
             0x02,  # state (connected)
-            0x03,  # model (generic)
+            0x02,  # model (full gyro)
             0x01,  # connection type (usb)
-            self.mac_int_bytes[0], self.mac_int_bytes[1], self.mac_int_bytes[2], self.mac_int_bytes[3],
-            self.mac_int_bytes[4], self.mac_int_bytes[5],
+            *self.controllers[pad_id].mac,  # 6 bytes mac address
             0xef,  # battery (charged)
-            0x00,  # ?
+            0x00,  # fixed zero on ports response.
         ]))
 
-    def _req_ports(self, message, address):
+    def _req_ports(self, message: bytes, address: TAddress):
         requests_count = struct.unpack("<i", message[20:24])[0]
         for i in range(requests_count):
             index = message[24 + i]
+            if index in self.controllers:
+                self.sock.sendto(self._res_ports(index).serialize(), address)
 
-            if index != 0:  # we have only one controller
-                continue
+    def _req_data(self, message: bytes, address: TAddress):
+        flags = message[20]
+        pad_id = message[21]
 
-            self.sock.sendto(self._res_ports(index).serialize(), address)
-
-    def _req_data(self, message, address):
-        flags = message[24]
-        reg_id = message[25]
-        # reg_mac = message[26:32]
-
-        if flags == 0 and reg_id == 0:  # TODO: Check MAC
-            if address not in self.clients:
-                print('[udp] Client connected: {0[0]}:{0[1]}'.format(address))
-
-            self.clients[address] = time()
-
-    def _res_data(self, message):
-        now = time()
-        for address, timestamp in self.clients.copy().items():
-            if now - timestamp < 2:
-                self.sock.sendto(message, address)
+        if flags == 0:
+            # register for all controllers
+            for pad_id, controller_data in self.controllers.items():
+                controller_data.clients[address] = time()
+        elif flags == 1:
+            controller_data = self.controllers.get(pad_id)
+            if controller_data is None:
+                print(f'[udp] Client {address} requested {pad_id=}, ignoring')
             else:
-                print('[udp] Client disconnected: {0[0]}:{0[1]}'.format(address))
-                del self.clients[address]
+                if address not in controller_data.clients:
+                    print('[udp] Client {0[0]}:{0[1]} connected to {1}'.format(address, pad_id))
+                controller_data.clients[address] = time()
+        # elif flags == 2: # TODO: implement mac based connect
+        else:
+            print(f'[udp] Client {address} requested {flags=} {pad_id=}, ignoring')
+
+    def _res_data(self, pad_id: int, message: Message):
+        now = time()
+        controller_data = self.controllers[pad_id]
+        for address in list(controller_data.clients):
+            if now - controller_data.clients.get(address, 5) < 2:
+                self.sock.sendto(message.serialize(), address)
+            else:
+                print('[udp] Client {0[0]}:{0[1]} disconnected from {1}'.format(address, pad_id))
+                del controller_data.clients[address]
 
     def _handle_request(self, request):
         message, address = request
@@ -131,20 +155,24 @@ class UDPServer:
         return int(res.group(0).replace(':', ''), 16)
 
     def device(self, device):
+        self.device_for_pad(0x00, device)
+
+    def device_for_pad(self, pad_id: int, device):
         mac = device.device_addr
         mac_int = self.mac_to_int(mac)
-        self.mac_int_bytes = mac_int.to_bytes(6, "big")
+
+        self.controllers[pad_id].mac = mac_int.to_bytes(6, "big")
 
     def report(self, report):
-        if len(self.clients) == 0:
-            return None
+        return self.report_for_pad(0x00, report)
 
+    def report_for_pad(self, pad_id: int, report):
         data = [
-            0x00,  # pad id
+            pad_id,  # pad id
             0x02,  # state (connected)
             0x02,  # model (generic)
             0x01,  # connection type (usb)
-            *self.mac_int_bytes,  # 6 bytes mac address
+            *self.controllers[pad_id].mac,  # 6 bytes mac address
             0xef,  # battery (charged)
             0x01  # is active (true)
         ]
@@ -167,16 +195,16 @@ class UDPServer:
         buttons2 |= report.button_r2 << 1
         buttons2 |= report.button_l1 << 2
         buttons2 |= report.button_r1 << 3
-        if not self.remap:
-            buttons2 |= report.button_triangle << 4
-            buttons2 |= report.button_circle << 5
-            buttons2 |= report.button_cross << 6
-            buttons2 |= report.button_square << 7
-        else:
-            buttons2 |= report.button_triangle << 7
-            buttons2 |= report.button_circle << 6
-            buttons2 |= report.button_cross << 5
-            buttons2 |= report.button_square << 4
+        # if not self.remap:
+        buttons2 |= report.button_triangle << 4
+        buttons2 |= report.button_circle << 5
+        buttons2 |= report.button_cross << 6
+        buttons2 |= report.button_square << 7
+        # else:
+        #     buttons2 |= report.button_triangle << 7
+        #     buttons2 |= report.button_circle << 6
+        #     buttons2 |= report.button_cross << 5
+        #     buttons2 |= report.button_square << 4
 
         data.extend([
             buttons1, buttons2,
@@ -235,7 +263,7 @@ class UDPServer:
         for sensor in sensors:
             data.extend(bytes(struct.pack('<f', float(sensor))))
 
-        self._res_data(Message(MessageType.data, bytes(data)).serialize())
+        self._res_data(pad_id, Message(MessageType.data, bytes(data)))
 
     def _worker(self):
         while True:
