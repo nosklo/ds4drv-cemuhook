@@ -1,45 +1,62 @@
 from __future__ import division
 from builtins import bytes
 
+import attr
+
 from threading import Thread
 import sys
 import socket
 import struct
 from binascii import crc32
 from time import time
+import enum
 
 import re
 
-class Message(list):
-    Types = dict(version=bytes([0x00, 0x00, 0x10, 0x00]),
-                 ports=bytes([0x01, 0x00, 0x10, 0x00]),
-                 data=bytes([0x02, 0x00, 0x10, 0x00]))
 
-    def __init__(self, message_type, data):
-        self.extend([
-            0x44, 0x53, 0x55, 0x53,  # DSUS,
-            0xE9, 0x03,  # protocol version (1001),
-        ])
+class MessageType(enum.Enum):
+    version = b'\x00\x00\x10\x00'
+    ports = b'\x01\x00\x10\x00'
+    data = b'\x02\x00\x10\x00'
 
-        # data length
-        self.extend(bytes(struct.pack('<H', len(data) + 4)))
 
-        self.extend([
-            0x00, 0x00, 0x00, 0x00,  # place for CRC32
-            0xff, 0xff, 0xff, 0xff,  # server ID
-        ])
+HEADER = bytes(
+    [
+        0x44, 0x53, 0x55, 0x53,  # DSUS,
+        0xE9, 0x03,  # protocol version (1001),
+    ])
 
-        self.extend(Message.Types[message_type])  # data type
 
-        self.extend(data)
+@attr.s(auto_attribs=True)
+class Message:
+    message_type: MessageType
+    data: bytes
 
-        # CRC32
-        crc = crc32(bytes(self)) & 0xffffffff
-        self[8:12] = bytes(struct.pack('<I', crc))
+    def serialize(self) -> bytes:
+        header = bytearray(HEADER)
+
+        # add data length:
+        header += struct.pack('<H', len(self.data) + 4)
+
+        # server ID:
+        payload = bytearray(b'\xff' * 4)
+
+        # message type:
+        payload += self.message_type.value
+
+        # add the data
+        payload += self.data
+
+        # calculate the crc32
+        crc = struct.pack('<I', crc32(header + b'\x00' * 4 + payload) & 0xffffffff)
+
+        # add it
+        payload = header + crc + payload
+
+        return payload
 
 
 class UDPServer:
-
     mac_int_bytes = bytes(6)
 
     def __init__(self, host='', port=26760):
@@ -50,33 +67,30 @@ class UDPServer:
         self.remap = False
 
     def _res_ports(self, index):
-        return Message('ports', [
+        return Message(MessageType.ports, bytes([
             index,  # pad id
             0x02,  # state (connected)
             0x03,  # model (generic)
             0x01,  # connection type (usb)
-            self.mac_int_bytes[0], self.mac_int_bytes[1], self.mac_int_bytes[2], self.mac_int_bytes[3], self.mac_int_bytes[4], self.mac_int_bytes[5],
+            self.mac_int_bytes[0], self.mac_int_bytes[1], self.mac_int_bytes[2], self.mac_int_bytes[3],
+            self.mac_int_bytes[4], self.mac_int_bytes[5],
             0xef,  # battery (charged)
             0x00,  # ?
-        ])
-
-    @staticmethod
-    def _compat_ord(value):
-        return ord(value) if sys.version_info < (3, 0) else value
+        ]))
 
     def _req_ports(self, message, address):
         requests_count = struct.unpack("<i", message[20:24])[0]
         for i in range(requests_count):
-            index = self._compat_ord(message[24 + i])
+            index = message[24 + i]
 
             if index != 0:  # we have only one controller
                 continue
 
-            self.sock.sendto(bytes(self._res_ports(index)), address)
+            self.sock.sendto(self._res_ports(index).serialize(), address)
 
     def _req_data(self, message, address):
-        flags = self._compat_ord(message[24])
-        reg_id = self._compat_ord(message[25])
+        flags = message[24]
+        reg_id = message[25]
         # reg_mac = message[26:32]
 
         if flags == 0 and reg_id == 0:  # TODO: Check MAC
@@ -98,18 +112,19 @@ class UDPServer:
         message, address = request
 
         # client_id = message[12:16]
-        msg_type = message[16:20]
+        msg_type = MessageType(message[16:20])
 
-        if msg_type == Message.Types['version']:
+        if msg_type == MessageType.version:
             return
-        elif msg_type == Message.Types['ports']:
+        elif msg_type == MessageType.ports:
             self._req_ports(message, address)
-        elif msg_type == Message.Types['data']:
+        elif msg_type == MessageType.data:
             self._req_data(message, address)
         else:
-            print('[udp] Unknown message type: ' + str(msg_type))
+            print(f'[udp] Unknown message type from {message[12:16]}: {message[16:20]}')
 
-    def mac_to_int(self, mac):
+    @staticmethod
+    def mac_to_int(mac):
         res = re.match('^((?:(?:[0-9a-f]{2}):){5}[0-9a-f]{2})$', mac.lower())
         if res is None:
             raise ValueError('invalid mac address')
@@ -129,7 +144,7 @@ class UDPServer:
             0x02,  # state (connected)
             0x02,  # model (generic)
             0x01,  # connection type (usb)
-            *self.mac_int_bytes, # 6 bytes mac address
+            *self.mac_int_bytes,  # 6 bytes mac address
             0xef,  # battery (charged)
             0x01  # is active (true)
         ]
@@ -206,8 +221,8 @@ class UDPServer:
             report.trackpad_touch1_y & 255,
         ])
 
-        data.extend(bytes(struct.pack('<Q', int(time()*10**6))))
-        
+        data.extend(bytes(struct.pack('<Q', int(time() * 10 ** 6))))
+
         sensors = [
             report.orientation_roll / 8192,
             - report.orientation_yaw / 8192,
@@ -220,7 +235,7 @@ class UDPServer:
         for sensor in sensors:
             data.extend(bytes(struct.pack('<f', float(sensor))))
 
-        self._res_data(bytes(Message('data', data)))
+        self._res_data(Message(MessageType.data, bytes(data)).serialize())
 
     def _worker(self):
         while True:
