@@ -1,3 +1,6 @@
+import argparse
+import itertools
+
 try:
     import demandimport
     demandimport.enable()
@@ -15,6 +18,7 @@ from .config import load_options
 from .daemon import Daemon
 from .eventloop import EventLoop
 from .exceptions import BackendError
+from .servers import udp
 
 
 class DS4Controller(object):
@@ -35,6 +39,8 @@ class DS4Controller(object):
         self.profiles = options.profiles
         self.profile_options = dict(options.parent.profiles)
         self.profile_options["default"] = self.default_profile
+
+        self.server = None
 
         if self.profiles:
             self.profiles.append("default")
@@ -161,10 +167,7 @@ def main():
     sigint_handler = SigintHandler(threads)
     signal.signal(signal.SIGINT, sigint_handler)
 
-    try:
-        options = load_options()
-    except ValueError as err:
-        Daemon.exit("Failed to parse options: {0}", err)
+    options = load_options()
 
     if options.hidraw:
         backend = HidrawBackend(Daemon.logger)
@@ -179,8 +182,16 @@ def main():
     if options.daemon:
         Daemon.fork(options.daemon_log, options.daemon_pid)
 
+    if options.udp:
+        udp_server = udp.UDPServer(options.udp_host, options.udp_port)
+        udp_server.remap = options.udp_remap_buttons
+        udp_server.start()
+    else:
+        udp_server = None
+
     for index, controller_options in enumerate(options.controllers):
         thread = create_controller_thread(index + 1, controller_options)
+        thread.controller.server = udp_server
         threads.append(thread)
 
     for device in backend.devices:
@@ -202,15 +213,25 @@ def main():
                                    device.device_addr)
             continue
 
-        for thread in filter(lambda t: not t.controller.device, threads):
-            break
-        else:
-            thread = create_controller_thread(len(threads) + 1,
+        # find thread without device...
+        for thread in threads:
+            if not thread.controller.device:
+                break
+        else:  # not found. create new thread
+            # find first unused index number
+            indexes = {thread.controller.index for thread in threads}
+            for index in itertools.count(start=1):
+                if index not in indexes:
+                    break
+            thread = create_controller_thread(index,
                                               options.default_controller,
                                               dynamic=True)
+            if index <= 4:
+                thread.controller.server = udp_server
             threads.append(thread)
 
         thread.controller.setup_device(device)
+
 
 if __name__ == "__main__":
     main()

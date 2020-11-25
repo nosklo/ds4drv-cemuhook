@@ -6,7 +6,7 @@ from typing import Any, Dict, Tuple
 
 import attr
 
-from threading import Thread
+import threading
 
 import socket
 import struct
@@ -75,14 +75,13 @@ class UDPServer:
     port: int = 26760
     controllers: Dict[int, ControllerData] = attr.ib(init=False,
                                                      factory=lambda: collections.defaultdict(ControllerData))
-    counter: int = 0
+    counter: int = attr.ib(init=False, default=0)
+    _per_client_send_lock: Dict[TAddress, threading.Lock] = attr.ib(init=False,
+                                                                    factory=lambda: collections.defaultdict(threading.Lock))
 
     def __attrs_post_init__(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind((self.host, self.port))
-    #     self.counter = 0
-    #     self.clients = dict()
-    #     self.remap = False
 
     def _res_ports(self, pad_id: int) -> Message:
         return Message(MessageType.ports, bytes([
@@ -100,7 +99,8 @@ class UDPServer:
         for i in range(requests_count):
             index = message[24 + i]
             if index in self.controllers:
-                self.sock.sendto(self._res_ports(index).serialize(), address)
+                with self._per_client_send_lock[address]:
+                    self.sock.sendto(self._res_ports(index).serialize(), address)
 
     def _req_data(self, message: bytes, address: TAddress):
         flags = message[20]
@@ -127,7 +127,8 @@ class UDPServer:
         controller_data = self.controllers[pad_id]
         for address in list(controller_data.clients):
             if now - controller_data.clients.get(address, 5) < 2:
-                self.sock.sendto(message.serialize(), address)
+                with self._per_client_send_lock[address]:
+                    self.sock.sendto(message.serialize(), address)
             else:
                 print('[udp] Client {0[0]}:{0[1]} disconnected from {1}'.format(address, pad_id))
                 del controller_data.clients[address]
@@ -270,6 +271,6 @@ class UDPServer:
             self._handle_request(self.sock.recvfrom(1024))
 
     def start(self):
-        self.thread = Thread(target=self._worker)
+        self.thread = threading.Thread(target=self._worker)
         self.thread.daemon = True
         self.thread.start()
