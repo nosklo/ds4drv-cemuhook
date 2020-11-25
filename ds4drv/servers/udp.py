@@ -69,7 +69,7 @@ class UDPServer:
         for i in range(requests_count):
             index = self._compat_ord(message[24 + i])
 
-            if (index != 0):  # we have only one controller
+            if index != 0:  # we have only one controller
                 continue
 
             self.sock.sendto(bytes(self._res_ports(index)), address)
@@ -129,7 +129,7 @@ class UDPServer:
             0x02,  # state (connected)
             0x02,  # model (generic)
             0x01,  # connection type (usb)
-            self.mac_int_bytes[0], self.mac_int_bytes[1], self.mac_int_bytes[2], self.mac_int_bytes[3], self.mac_int_bytes[4], self.mac_int_bytes[5],
+            *self.mac_int_bytes, # 6 bytes mac address
             0xef,  # battery (charged)
             0x01  # is active (true)
         ]
