@@ -24,6 +24,8 @@ ReportAction.add_option("--mapping", metavar="mapping",
                              "config file")
 ReportAction.add_option("--trackpad-mouse", action="store_true",
                         help="Makes the trackpad control the mouse")
+ReportAction.add_option("--udp-remap-buttons", action="store_true",
+                        help="Swap A-B and X-Y in UDP reports")
 
 
 class ReportActionInput(ReportAction):
@@ -89,11 +91,7 @@ class ReportActionInput(ReportAction):
             else:
                 joystick = None
 
-            # if options.udp and not self.controller.server:
-            #     self.controller.server = UDPServer(options.udp_host, options.udp_port)
-            #     self.controller.server.remap = options.udp_remap_buttons
-            #     self.controller.server.start()
-            # controller_data = self.controller.server.controllers[self.controller.index - 1]
+            self.controller.remap = options.udp_remap_buttons
 
             self.joystick.ignored_buttons = set()
             for button in options.ignored_buttons:
@@ -124,7 +122,7 @@ class ReportActionInput(ReportAction):
 
     def handle_report(self, report):
         if self.controller.server:
-            self.controller.server.report_for_pad(self.controller.index - 1, report)
+            self.controller.server.report_for_pad(self.controller.index - 1, report, remap=self.controller.remap)
 
         if self.joystick:
             self.joystick.emit(report)

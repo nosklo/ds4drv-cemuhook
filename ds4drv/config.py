@@ -73,8 +73,6 @@ udpopt.add_argument("--udp-host", metavar="IP", default="127.0.0.1",
                     help="Interface that will accept UDP connections")
 udpopt.add_argument("--udp-port", metavar="PORT", type=int, default=26760,
                     help="Port that will be listened by the UDP server")
-udpopt.add_argument("--udp-remap-buttons", action="store_true",
-                    help="Swap A-B and X-Y in UDP reports")
 
 controllopt = parser.add_argument_group("controller options")
 

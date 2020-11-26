@@ -187,19 +187,13 @@ class UDPServer:
             raise ValueError('invalid mac address')
         return int(res.group(0).replace(':', ''), 16)
 
-    def device(self, device):
-        self.device_for_pad(0x00, device)
-
     def device_for_pad(self, pad_id: int, device):
         mac = device.device_addr
         mac_int = self.mac_to_int(mac)
 
         self.controllers[pad_id].mac = mac_int.to_bytes(6, "big")
 
-    def report(self, report):
-        return self.report_for_pad(0x00, report)
-
-    def report_for_pad(self, pad_id: int, report):
+    def report_for_pad(self, pad_id: int, report, remap: bool = False):
         if report.plug_usb:
             connection_type = 0x01  # usb
         else:
@@ -234,16 +228,16 @@ class UDPServer:
         buttons2 |= report.button_r2 << 1
         buttons2 |= report.button_l1 << 2
         buttons2 |= report.button_r1 << 3
-        # if not self.remap:
-        buttons2 |= report.button_triangle << 4
-        buttons2 |= report.button_circle << 5
-        buttons2 |= report.button_cross << 6
-        buttons2 |= report.button_square << 7
-        # else:
-        #     buttons2 |= report.button_triangle << 7
-        #     buttons2 |= report.button_circle << 6
-        #     buttons2 |= report.button_cross << 5
-        #     buttons2 |= report.button_square << 4
+        if remap:
+            buttons2 |= report.button_triangle << 7
+            buttons2 |= report.button_circle << 6
+            buttons2 |= report.button_cross << 5
+            buttons2 |= report.button_square << 4
+        else:
+            buttons2 |= report.button_triangle << 4
+            buttons2 |= report.button_circle << 5
+            buttons2 |= report.button_cross << 6
+            buttons2 |= report.button_square << 7
 
         data.extend([
             buttons1, buttons2,

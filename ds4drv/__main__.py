@@ -41,6 +41,7 @@ class DS4Controller(object):
         self.profile_options["default"] = self.default_profile
 
         self.server = None
+        self.remap = False
 
         if self.profiles:
             self.profiles.append("default")
@@ -184,7 +185,6 @@ def main():
 
     if options.udp:
         udp_server = udp.UDPServer(options.udp_host, options.udp_port)
-        udp_server.remap = options.udp_remap_buttons
         udp_server.start()
     else:
         udp_server = None
