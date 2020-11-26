@@ -18,6 +18,38 @@ import re
 
 PROTOCOL_VERSION = 1001
 
+_battery_table = {
+    # CHARGING 1-11
+    # dying
+    (True, 1): 0x01,
+    (True, 2): 0x01,
+    # low
+    (True, 3): 0x02,
+    (True, 4): 0x02,
+    # medium
+    (True, 5): 0x03,
+    (True, 6): 0x03,
+    # high
+    (True, 7): 0x04,
+    (True, 8): 0x04,
+    (True, 9): 0x04,
+    # full
+    (True, 10): 0x05,
+    (True, 11): 0x05,
+    # NORMAL 1-8
+    (False, 1): 0x01,  # dying
+    (False, 2): 0x02,  # low
+    # medium
+    (False, 3): 0x03,
+    (False, 4): 0x03,
+    # high
+    (False, 5): 0x04,
+    (False, 6): 0x04,
+    # full
+    (False, 7): 0x05,
+    (False, 8): 0x05,
+}
+
 
 class MessageType(enum.Enum):
     version = b'\x00\x00\x10\x00'
@@ -168,13 +200,19 @@ class UDPServer:
         return self.report_for_pad(0x00, report)
 
     def report_for_pad(self, pad_id: int, report):
+        if report.plug_usb:
+            connection_type = 0x01  # usb
+        else:
+            connection_type = 0x02  # bluetooth
+        battery = _battery_table.get((bool(report.plug_usb), report.battery), 0)
+
         data = [
             pad_id,  # pad id
             0x02,  # state (connected)
             0x02,  # model (generic)
-            0x01,  # connection type (usb)
+            connection_type,
             *self.controllers[pad_id].mac,  # 6 bytes mac address
-            0xef,  # battery (charged)
+            battery,  # battery (charged)
             0x01  # is active (true)
         ]
 
