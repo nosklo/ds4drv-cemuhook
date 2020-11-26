@@ -2,7 +2,6 @@ from ..action import ReportAction
 from ..config import buttoncombo
 from ..exceptions import DeviceError
 from ..uinput import create_uinput_device
-from ..servers import UDPServer
 
 ReportAction.add_option("--emulate-xboxdrv", action="store_true",
                          help="Emulates the same joystick layout as a "

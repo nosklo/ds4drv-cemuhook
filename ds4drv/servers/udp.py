@@ -1,5 +1,5 @@
 import collections
-from typing import Any, Dict, Tuple
+from typing import Dict, Tuple
 import threading
 
 import socket

@@ -21,14 +21,13 @@ setup(name="ds4drv",
                 "ds4drv.backends",
                 "ds4drv.packages",
                 "ds4drv.servers"],
-      install_requires=["evdev>=0.3.0", "pyudev>=0.16", "pybluez>=0.23"],
+      install_requires=["evdev>=0.3.0", "pyudev>=0.16", "pybluez>=0.23", "attrs"],
       classifiers=[
         "Development Status :: 4 - Beta",
         "Environment :: Console",
         "License :: OSI Approved :: MIT License",
         "Operating System :: POSIX :: Linux",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.6",
         "Topic :: Games/Entertainment"
       ]
 )
