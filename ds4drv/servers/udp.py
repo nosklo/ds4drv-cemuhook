@@ -1,11 +1,5 @@
-from __future__ import division
-
 import collections
-from builtins import bytes
 from typing import Any, Dict, Tuple
-
-import attr
-
 import threading
 
 import socket
@@ -14,7 +8,7 @@ import binascii
 from time import time
 import enum
 
-import re
+import attr
 
 PROTOCOL_VERSION = 1001
 
@@ -114,6 +108,8 @@ class UDPServer:
     def __attrs_post_init__(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind((self.host, self.port))
+        self.thread = threading.Thread(target=self._worker)
+        self.thread.daemon = True
 
     def _res_ports(self, pad_id: int) -> Message:
         return Message(MessageType.ports, bytes([
@@ -180,18 +176,8 @@ class UDPServer:
         else:
             print(f'[udp] Unknown message type from {message[12:16]}: {message[16:20]}')
 
-    @staticmethod
-    def mac_to_int(mac):
-        res = re.match('^((?:(?:[0-9a-f]{2}):){5}[0-9a-f]{2})$', mac.lower())
-        if res is None:
-            raise ValueError('invalid mac address')
-        return int(res.group(0).replace(':', ''), 16)
-
     def device_for_pad(self, pad_id: int, device):
-        mac = device.device_addr
-        mac_int = self.mac_to_int(mac)
-
-        self.controllers[pad_id].mac = mac_int.to_bytes(6, "big")
+        self.controllers[pad_id].mac = binascii.unhexlify(device.device_addr.replace(':', ''))
 
     def report_for_pad(self, pad_id: int, report, remap: bool = False):
         if report.plug_usb:
@@ -303,6 +289,4 @@ class UDPServer:
             self._handle_request(self.sock.recvfrom(1024))
 
     def start(self):
-        self.thread = threading.Thread(target=self._worker)
-        self.thread.daemon = True
         self.thread.start()
