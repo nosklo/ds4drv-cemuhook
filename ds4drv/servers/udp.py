@@ -140,9 +140,7 @@ class UDPServer:
                 controller_data.clients[address] = time()
         elif flags == 1:
             controller_data = self.controllers.get(pad_id)
-            if controller_data is None:
-                print(f'[udp] Client {address} requested {pad_id=}, ignoring')
-            else:
+            if controller_data is not None:
                 if address not in controller_data.clients:
                     print('[udp] Client {0[0]}:{0[1]} connected to {1}'.format(address, pad_id))
                 controller_data.clients[address] = time()
