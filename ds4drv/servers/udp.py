@@ -154,7 +154,7 @@ class UDPServer:
         now = time()
         controller_data = self.controllers[pad_id]
         for address in list(controller_data.clients):
-            if now - controller_data.clients.get(address, 5) < 2:
+            if now - controller_data.clients.get(address, 5) < 5:
                 with self._per_client_send_lock[address]:
                     self.sock.sendto(message.serialize(), address)
             else:
